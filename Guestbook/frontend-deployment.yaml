@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: phx.ocir.io/intoraclerohit/mahendra/guestbook:v1
+        image: mahidocker2018/guestbook:v3
         imagePullPolicy: Always        
         env:
         - name: GET_HOSTS_FROM

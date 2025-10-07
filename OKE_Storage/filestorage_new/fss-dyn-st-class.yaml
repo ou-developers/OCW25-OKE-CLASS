@@ -1,0 +1,11 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: fss-dyn-storage
+provisioner: fss.csi.oraclecloud.com
+parameters:
+  availabilityDomain: dKYS:PHX-AD-1
+  mountTargetSubnetOcid: ocid1.subnet.oc1.phx.aaaaaaaa375hj7sizibiyhvesti7bstzl2kc3em5233qrxqsstctmd4gzbhq
+  compartmentOcid: ocid1.compartment.oc1..aaaaaaaayrtdxlkhtj743elimx7mnpdlummsralzxwsk3irgvvhr6pmxbc7q
+  exportOptions: "[{\"source\":\"0.0.0.0/0\",\"requirePrivilegedSourcePort\":false,\"access\":\"READ_WRITE\",\"identitySquash\":\"NONE\"}]"
+  encryptInTransit: "false"

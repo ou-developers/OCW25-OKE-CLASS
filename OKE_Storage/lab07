@@ -1,0 +1,127 @@
+Lab Manual: Provisioning PVCs with OCI Block Volumes in OKE
+
+Objective:
+Learn how to provision Persistent Volume Claims (PVCs) backed by OCI Block Volumes (BV) and mount them to a pod running on Oracle Kubernetes Engine (OKE).
+
+Prerequisites
+
+Access to Oracle Cloud Infrastructure (OCI) with Container Engine for Kubernetes (OKE) cluster
+
+OCI Block Volume service available in your compartment
+
+kubeconfig configured for your cluster
+
+Basic knowledge of Kubernetes objects (Pods, PVCs, Volumes)
+
+Lab Steps with Command Explanations
+Step 1: Verify Cluster Connection
+kubectl get nodes
+
+Explanation:
+Lists all nodes in your Kubernetes cluster. Confirms kubeconfig is correctly configured and the cluster is running.
+
+Step 2: Navigate to Manifest Files
+cd <directory-containing-manifests>
+ls
+
+Explanation:
+Change to the directory containing manifest files and list them to confirm presence of csi-bvs-pvc.yaml and nginx-pvc.yaml.
+
+Step 3: Review PVC Manifest
+cat csi-bvs-pvc.yaml
+
+Explanation:
+Displays PVC configurations such as StorageClass (OCI BV), access mode (ReadWriteOnce), and storage size (50 GB).
+
+Step 4: Create Persistent Volume Claim
+kubectl create -f csi-bvs-pvc.yaml
+
+Explanation:
+Creates the PVC in the Kubernetes cluster named my-nginx-claim.
+
+Step 5: Verify PVC Status
+kubectl get pvc
+
+Explanation:
+Lists all PVCs and their statuses. Status may be Pending initially because OCI BV uses WaitForFirstConsumer binding mode.
+
+Watch PVC in real-time:
+
+kubectl get pvc -w
+
+Explanation:
+-w option watches the PVC until it becomes Bound.
+
+Step 6: Check OCI Block Volumes
+
+Open OCI Console → Block Volumes.
+
+At this stage, no volumes are yet provisioned as the PVC is not consumed by any pod.
+
+Step 7: Review Pod Manifest
+cat nginx-pvc.yaml
+
+Explanation:
+Defines a pod using nginx container:
+
+Mounts PVC my-nginx-claim to /usr/share/nginx/html inside container.
+
+Connects OCI Block Volume dynamically using CSI plugin.
+
+Step 8: Create Pod
+kubectl create -f nginx-pvc.yaml
+
+Explanation:
+Creates the nginx pod and binds the PVC, which triggers automatic provisioning of the OCI Block Volume.
+
+Step 9: Verify Pod and PVC
+
+Check pod status:
+
+kubectl get pods
+
+Explanation:
+Lists pods in the namespace to confirm nginx pod is running.
+
+Describe pod for detailed information:
+
+kubectl describe pod nginx
+
+Explanation:
+Shows volume attachment, mount paths, and events confirming the block volume is attached using CSI driver.
+
+Check PVC status again:
+
+kubectl get pvc
+
+Explanation:
+Confirms PVC is now Bound to a dynamically provisioned block volume.
+
+Step 10: Validate Block Volume Creation
+
+Open OCI Console → Block Volumes.
+
+Confirm a 50 GB block volume is provisioned automatically.
+
+Check default performance (VPU 10) and availability domain.
+
+Commands Summary with Explanations
+Command	Purpose
+kubectl get nodes	List cluster nodes to verify connectivity.
+kubectl create -f csi-bvs-pvc.yaml	Create a PersistentVolumeClaim.
+kubectl get pvc	Check PVC status.
+kubectl get pvc -w	Watch PVC status until Bound.
+kubectl create -f nginx-pvc.yaml	Create pod that consumes the PVC.
+kubectl get pods	Verify pod is running.
+kubectl describe pod nginx	Check volume attachment and mount details inside the pod.
+
+End of Lab:
+You have successfully:
+
+Created a PVC backed by OCI Block Volume.
+
+Applied a pod manifest consuming the PVC.
+
+Verified PVC is bound and block volume is attached.
+
+Confirmed mount path inside the container.

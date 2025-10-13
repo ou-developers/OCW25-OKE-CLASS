@@ -1,0 +1,153 @@
+# Kubernetes Basic Commands Reference
+
+## 1. Cluster Management
+
+# View Cluster Info
+
+kubectl cluster-info
+
+# List all nodes in the cluster
+
+kubectl get nodes
+
+# View full Kubernetes configuration
+
+kubectl config view
+
+# Set the current context to a specific cluster
+
+kubectl config use-context <context-name>
+
+# View the current context
+
+kubectl config current-context
+
+## 2. Basic kubectl Commands
+
+# Get help and see all kubectl commands
+
+kubectl --help
+
+# List resources (Pods, Services, etc.)
+
+kubectl get <resource>          # Example: kubectl get pods, kubectl get services
+
+# View detailed information about a resource
+
+kubectl describe <resource> <resource-name>
+
+# Get resource definition in YAML format
+
+kubectl get <resource> <resource-name> -o yaml
+
+# Check logs of a Pod
+
+kubectl logs <pod-name>
+
+# View recent events in the cluster
+
+kubectl get events
+
+## 3. Managing Pods
+
+# Create a Pod from a YAML file
+
+kubectl apply -f <pod-file>.yaml
+
+# List all Pods
+
+kubectl get pods
+
+# Delete a Pod
+
+kubectl delete pod <pod-name>
+
+# Scale a Pod (if managed by a deployment or replicaset)
+
+kubectl scale --replicas=<number> pod <pod-name>
+
+# Run a Pod with interactive terminal
+
+kubectl run <pod-name> --image=<image-name> --stdin --tty
+
+# Execute a command inside a Pod (e.g., open a bash shell)
+
+kubectl exec -it <pod-name> -- /bin/bash
+
+## 4. Managing Deployments
+
+# Create a Deployment from a YAML file
+
+kubectl apply -f <deployment-file>.yaml
+
+# List all Deployments
+
+kubectl get deployments
+
+# View details of a specific Deployment
+
+kubectl describe deployment <deployment-name>
+
+# Scale a Deployment to a specific number of replicas
+
+kubectl scale deployment <deployment-name> --replicas=<number>
+
+# Update the image of a container in a Deployment
+
+kubectl set image deployment/<deployment-name> <container-name>=<new-image>
+
+# Delete a Deployment
+
+kubectl delete deployment <deployment-name>
+
+# Rollback a Deployment to the previous version
+
+kubectl rollout undo deployment/<deployment-name>
+
+## 5. Working with Services
+
+# Create a Service from a YAML file
+
+kubectl apply -f <service-file>.yaml
+
+# List all Services
+
+kubectl get services
+
+# Expose a Pod via a Service
+
+kubectl expose pod <pod-name> --port=<port> --target-port=<target-port> --name=<service-name>
+
+# Expose a Deployment via a Service
+
+kubectl expose deployment <deployment-name> --port=<port> --target-port=<target-port> --name=<service-name>
+
+# View details of a Service
+
+kubectl describe service <service-name>
+
+# Delete a Service
+
+kubectl delete service <service-name>
+
+# Port-forward a Service to your local machine
+
+kubectl port-forward service/<service-name> <local-port>:<target-port>
+
+## 6. Namespaces & Access Control (Bonus)
+
+# List all namespaces in the cluster
+
+kubectl get namespaces
+
+# Set the current context to a specific namespace
+
+kubectl config set-context --current --namespace=<namespace-name>
+
+# Create a new namespace
+
+kubectl create namespace <namespace-name>
+
+# Delete a namespace
+
+kubectl delete namespace <namespace-name>

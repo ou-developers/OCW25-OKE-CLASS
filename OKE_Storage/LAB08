@@ -1,0 +1,93 @@
+# Lab Manual: Expanding an OCI Block Volume in OKE
+
+**Objective:**
+Learn how to expand the capacity of a Persistent Volume Claim (PVC) backed by OCI Block Volumes (BV) and make the increased storage available to pods in a Kubernetes cluster.
+
+---
+
+## **Prerequisites**
+
+* OCI account with access to Container Engine for Kubernetes (OKE) cluster.
+* Existing PVC and pod setup (e.g., `mynginxclaim` with 50 GB capacity).
+* kubeconfig configured for the cluster.
+* Basic knowledge of PVCs and pods in Kubernetes.
+
+---
+
+## **Lab Steps with Command Explanations**
+
+### **Step 1: Verify Existing PVC**
+
+```bash
+kubectl get pvc
+```
+
+**Explanation:**
+Lists all PVCs in the current namespace. Confirm the `mynginxclaim` PVC is **Bound**, currently with 50 GB capacity, using `oci-bv` storage class and ReadWriteOnce access mode.
+
+---
+
+### **Step 2: Edit PVC Manifest**
+
+```bash
+nano csi-bvs-pvc.yaml
+```
+
+**Explanation:**
+Opens the PVC manifest in a text editor. Increase the `storage` request from 50GB to 100GB in the `resources.requests.storage` section. Save and exit the editor.
+
+---
+
+### **Step 3: Apply Updated PVC Manifest**
+
+```bash
+kubectl apply -f csi-bvs-pvc.yaml
+```
+
+**Explanation:**
+Re-applies the manifest to update the PVC. The cluster recognizes the new size and triggers expansion of the underlying OCI Block Volume. Warnings can be ignored if present.
+
+---
+
+### **Step 4: Verify Expanded PVC**
+
+```bash
+kubectl get pvc
+```
+
+**Explanation:**
+Confirms that the `mynginxclaim` PVC capacity has increased to 100 GB.
+
+* Optional: Open **OCI Console → Block Volumes** to verify that the block volume size has increased to 100 GB.
+
+---
+
+### **Step 5: Describe Pod Using the PVC**
+
+```bash
+kubectl describe pod nginx
+```
+
+**Explanation:**
+Shows pod details including volume usage. Events indicate a successful `NodeExpandVolume` and `FileSystemResize` operation, meaning the pod now has access to the expanded volume without needing a restart.
+
+**Key Point:**
+Kubernetes automatically resizes the volume and filesystem. The pod sees the increased storage without needing to be restarted.
+
+---
+
+### **Commands Summary with Explanations**
+
+| Command                             | Purpose                                                         |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `kubectl get pvc`                   | Check current PVC status and capacity.                          |
+| `nano csi-bvs-pvc.yaml`             | Edit the PVC manifest to increase requested storage.            |
+| `kubectl apply -f csi-bvs-pvc.yaml` | Apply updated PVC manifest to expand the volume.                |
+| `kubectl describe pod nginx`        | Verify the pod has successfully recognized the expanded volume. |
+
+---
+
+**End of Lab:**
+You have successfully expanded a Persistent Volume Claim backed by an OCI Block Volume from 50 GB to 100 GB. The pod using this PVC automatically recognizes the increased storage without a restart.
+
+✅ Demonstrates dynamic volume expansion in Kubernetes using OCI Block Volumes and CSI driver.

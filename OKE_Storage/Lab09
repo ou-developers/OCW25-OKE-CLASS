@@ -1,0 +1,181 @@
+# Lab Manual: Specifying OCI Block Volume Performance in Kubernetes
+
+**Objective:**
+Learn how to configure and provision OCI Block Volumes with different performance levels using custom StorageClasses and attach them to pods via Persistent Volume Claims (PVCs).
+
+---
+
+## **Prerequisites**
+
+* OCI account with Container Engine for Kubernetes (OKE) cluster.
+* Basic knowledge of PVCs, pods, and storage classes in Kubernetes.
+* kubeconfig configured for your cluster.
+
+---
+
+## **Lab Steps with Command Explanations**
+
+### **Step 1: Open Storage Class Manifest**
+
+```bash
+cd OKE_Storage/block-vol-perf
+nano storageclass-high.yaml
+```
+
+**Explanation:**
+Opens the storage class definition in an editor. This manifest sets up a custom StorageClass named `OCI-high` with:
+
+* Provisioner: `blockvolume.csi.oraclecloud.com` (CSI driver for block volumes)
+* VPUs per GB: 20 (high performance)
+* Reclaim policy: Delete
+* Volume binding mode: WaitForFirstConsumer
+* Allow volume expansion: true
+
+---
+
+### **Step 2: Apply Storage Class**
+
+```bash
+kubectl create -f storageclass-high.yaml
+```
+
+**Explanation:**
+Creates the custom storage class `OCI-high` in the cluster. It can now be referenced by PVCs to provision high-performance block volumes.
+
+Verify storage classes:
+
+```bash
+kubectl get storageclass
+```
+
+**Explanation:**
+Lists all storage classes. Confirms the presence of the newly created `OCI-high` storage class along with existing defaults.
+
+---
+
+### **Step 3: Open PVC Manifest**
+
+```bash
+nano csi-bvs-pvc-perf.yaml
+```
+
+**Explanation:**
+Opens the PVC manifest for editing. Key settings:
+
+* Name: `OCI-PVC-high`
+* StorageClassName: `OCI-high`
+* AccessMode: ReadWriteOnce
+* Storage request: 50 GB
+
+---
+
+### **Step 4: Create PVC**
+
+```bash
+kubectl create -f csi-bvs-pvc-perf.yaml
+```
+
+**Explanation:**
+Creates a PVC that references the high-performance storage class. The PVC is initially **Pending** until a pod consumes it.
+
+Check PVC status:
+
+```bash
+kubectl get pvc
+```
+
+**Explanation:**
+Lists all PVCs and their statuses. Confirms the new PVC exists.
+
+Watch PVC status in real-time:
+
+```bash
+kubectl get pvc -w
+```
+
+**Explanation:**
+Shows live updates until PVC becomes **Bound**.
+
+---
+
+### **Step 5: Open Pod Manifest**
+
+```bash
+nano pod-high.yaml
+```
+
+**Explanation:**
+Pod manifest references the new high-performance PVC:
+
+* Pod Name: `pod-high`
+* Container Image: `busybox:latest`
+* VolumeMount Path: `/data`
+* Volume Source: PVC `OCI-PVC-high`
+
+---
+
+### **Step 6: Create Pod**
+
+```bash
+kubectl create -f pod-high.yaml
+```
+
+**Explanation:**
+Creates a pod that consumes the high-performance PVC, triggering dynamic provisioning of the block volume.
+
+Verify pod creation and PVC binding:
+
+```bash
+kubectl get pods
+kubectl get pvc
+```
+
+**Explanation:**
+Confirms pod is running and PVC status changes to **Bound**. A 50 GB block volume is dynamically provisioned.
+
+---
+
+### **Step 7: Describe Pod**
+
+```bash
+kubectl describe pod pod-high
+```
+
+**Explanation:**
+Shows detailed pod information:
+
+* Volume attachment event confirming successful block volume provisioning
+* Volume mount path `/data` inside the container
+* CSI plugin used for volume attachment
+
+---
+
+### **Step 8: Verify Block Volume Performance**
+
+* Open OCI Console → Block Volumes
+* Confirm new volume shows **VPU = 20**, indicating high performance
+* Compare with previous volumes using default VPU = 10
+
+---
+
+### **Commands Summary with Explanations**
+
+| Command                                    | Purpose                                                          |
+| ------------------------------------------ | ---------------------------------------------------------------- |
+| `nano storageclass-high.yaml`              | Edit StorageClass manifest to specify high performance (VPU 20). |
+| `kubectl create -f storageclass-high.yaml` | Create high-performance StorageClass in the cluster.             |
+| `kubectl get storageclass`                 | List all storage classes.                                        |
+| `nano csi-bvs-pvc-perf.yaml`               | Edit PVC manifest to use `OCI-high` storage class.               |
+| `kubectl create -f csi-bvs-pvc-perf.yaml`  | Create PVC referencing the high-performance storage class.       |
+| `kubectl get pvc`                          | Check PVC status.                                                |
+| `kubectl get pvc -w`                       | Watch PVC until it is **Bound**.                                 |
+| `nano pod-high.yaml`                       | Edit pod manifest to consume high-performance PVC.               |
+| `kubectl create -f pod-high.yaml`          | Create pod with PVC attached.                                    |
+| `kubectl get pods`                         | Verify pod status.                                               |
+| `kubectl describe pod pod-high`            | Confirm volume attachment and mount path inside pod.             |
+
+---
+
+**End of Lab:**
+You have successfully configured a PVC with high-performance OCI Block Volume and attached it to a pod. You verified VPU settings and saw how block volume performance can be controlled using custom StorageClasses.
+

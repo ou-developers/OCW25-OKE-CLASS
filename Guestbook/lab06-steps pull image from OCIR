@@ -1,0 +1,100 @@
+# Lab Manual: Deploying a Private Image from OCIR to Kubernetes
+
+**Objective:**
+Learn how to pull a Docker image from a private Oracle Cloud Infrastructure Registry (OCIR) repository and deploy it on Kubernetes using an image pull secret.
+
+## Prerequisites
+
+* OCI account with access to OCIR
+* Auth token generated for your user
+* Kubernetes cluster running (OKE or local)
+* Basic knowledge of Docker and Kubernetes
+
+## Lab Steps
+
+### Step 1: Login to OCIR
+
+```bash
+docker login -u 'idtsmo3ecyvm/<your-user-id>' iad.ocir.io
+# Password: <your-auth-token>
+```
+
+### Step 2: Pull the Guestbook Frontend Image
+
+```bash
+docker pull mahidocker2018/guestbook:v3
+```
+
+### Step 3: Tag the Image for Your Private Repository
+
+```bash
+docker tag mahidocker2018/guestbook:v3 iad.ocir.io/idtsmo3ecyvm/guestbook-<your-initials>:v3
+```
+
+> **Note:** Replace `<your-initials>` with your initials to uniquely tag the image.
+
+### Step 4: Push the Image to Your Private OCIR Repository
+
+```bash
+docker push iad.ocir.io/idtsmo3ecyvm/guestbook-<your-initials>:v3
+```
+
+### Step 5: Create Kubernetes Secret for Private Registry
+
+```bash
+kubectl create secret docker-registry ocirsecret \
+  --docker-server=iad.ocir.io \
+  --docker-username=idtsmo3ecyvm/<your-user-id> \
+  --docker-password='<your-auth-token>' \
+  --docker-email=mahendra@xyz.com
+```
+
+> This secret allows Kubernetes to pull images from your private OCIR repository.
+
+### Step 6: Remove Existing Frontend Deployment
+
+```bash
+kubectl delete -f frontend-deployment.yaml
+```
+
+* Navigate to your app IP in a browser.
+* **Observation:** The frontend no longer loads because the old image was removed.
+
+### Step 7: Update Frontend Deployment YAML
+
+1. Open `frontend-deployment.yaml` in a code editor.
+2. Update the `image` path:
+
+```yaml
+image: iad.ocir.io/idtsmo3ecyvm/guestbook-<your-initials>:v3
+```
+
+3. Scroll to the bottom and update the secret name under `imagePullSecrets`:
+
+```yaml
+imagePullSecrets:
+  - name: ocirsecret
+```
+
+4. Save the file.
+
+### Step 8: Apply the Updated Deployment
+
+```bash
+kubectl apply -f frontend-deployment.yaml
+```
+
+### Step 9: Verify Deployment
+
+* Go back to the application IP in your browser.
+* Hit **Refresh**.
+* **Observation:** The frontend image now loads successfully from your private OCIR repository.
+
+## End of Lab
+
+✅ Learners have successfully:
+
+1. Pushed a private Docker image to OCIR.
+2. Created a Kubernetes secret to pull from the private registry.
+3. Updated the deployment to use the private image.
+4. Verified that the frontend app loads using the new image.

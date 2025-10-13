@@ -21,7 +21,7 @@ Explanation:
 Lists all nodes in your Kubernetes cluster. Confirms kubeconfig is correctly configured and the cluster is running.
 
 Step 2: Navigate to Manifest Files
-cd <directory-containing-manifests>
+cd OKE_Storage/block-vol-intro
 ls
 
 Explanation:
@@ -123,5 +123,6 @@ Created a PVC backed by OCI Block Volume.
 Applied a pod manifest consuming the PVC.
 
 Verified PVC is bound and block volume is attached.
+
 
 Confirmed mount path inside the container.

@@ -5,7 +5,7 @@ metadata:
 spec:
   containers:
     - name: nginx
-      image: nginx:latest
+      image: iad.ocir.io/ocuocictrng5/nginx:latest
       ports:
         - name: http
           containerPort: 80

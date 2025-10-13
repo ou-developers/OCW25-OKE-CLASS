@@ -1,0 +1,47 @@
+# Step 1: Deploy the Redis leader (master) Pod and Deployment
+kubectl apply -f redis-leader-deployment.yaml
+
+# Step 2: Verify that the Redis leader Pod is running
+kubectl get pods
+
+# Step 3: Expose the Redis leader via a Service
+kubectl apply -f redis-leader-service.yaml
+
+# Step 4: Check the Service to get the ClusterIP or port
+kubectl get svc
+
+# Step 5: Deploy Redis followers (replica Pods) to scale reads
+kubectl apply -f redis-follower-deployment.yaml
+
+# Step 6: Verify that the Redis follower Pods are running
+kubectl get pods
+
+# Step 7: Expose the Redis followers via a Service
+kubectl apply -f redis-follower-service.yaml
+
+# Step 8: Check the Redis follower Service
+kubectl get svc
+
+# Step 9: Deploy the frontend application Pods
+kubectl apply -f frontend-deployment.yaml
+
+# Step 10: Verify that the frontend Pods are running
+kubectl get pods
+
+# Step 11: Check the Deployments to ensure all are created
+kubectl get deployment
+
+# Step 12: Expose the frontend via a Service so it can be accessed externally
+kubectl apply -f frontend-service.yaml
+
+# Step 13: Watch the frontend Service to see when it gets an external IP
+kubectl get svc -w
+
+# Step 14: Confirm all Deployments are up-to-date
+kubectl get deployment
+
+# Step 15: Scale the frontend Deployment to 5 replicas to handle more traffic
+kubectl scale deployment frontend --replicas=5
+
+# Step 16: Verify that the frontend Deployment has scaled successfully
+kubectl get deployment

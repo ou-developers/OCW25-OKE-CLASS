@@ -1,0 +1,146 @@
+# Lab Manual: Working with Kubernetes Cluster Autoscaler Add-on in OKE
+
+**Instructor:** Mahendra Mehra, Senior OCI Instructor, Oracle University
+
+**Objective:**
+Learn how to enable, configure, and test the Kubernetes Cluster Autoscaler Add-on on an OKE cluster, and observe automatic scaling of node pools based on workload demands.
+
+---
+
+## Prerequisites
+
+* OCI account with an OKE cluster.
+* Access to Cloud Shell or local terminal with `kubectl` configured.
+* Basic knowledge of Kubernetes resources (pods, deployments, node pools, PVCs).
+
+---
+
+## Step 1: Set Up Dynamic Group and Policies
+
+**Dynamic Group Creation** (Already created in this demo):
+
+* Name: `oaiw-oke-self-managed-node-dyn-grp`
+* Scope: All instances in the compartment with OCID `<You-compartment>`
+* Purpose: Allow the Cluster Autoscaler to manage node pools
+
+**Policies for the Dynamic Group** (Already created):
+
+* Allow dynamic group to **manage cluster node pools** in compartment `<your-compartment>`
+* Allow **instance family**, **subnets**, **VNICs**, **virtual networks**, and **compartment inspection**
+
+**Reference:** OCI Console → Identity & Security → Dynamic Groups / Policies
+
+---
+
+## Step 2: Enable Cluster Autoscaler Add-on
+
+1. Navigate to OCI Console → Developer Services → Kubernetes Clusters
+2. Select your cluster (`OCI Demo Cluster`)
+3. Scroll to **Resources → Add-ons**, click **Manage Add-ons**
+4. Enable **Cluster Autoscaler Add-on**
+5. Choose **Automatic Updates** or select a version manually
+6. Configure parameters:
+
+| Parameter                | Value                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| **nodes**                | `1:5:ocid1.nodepool.oc1.iad.aaaaaaaak5up62cqujj3ths3ijsw762kj4tcn5f7u6d2nkx3qnaus6kqknlq` | this is OCID of the nodepool in your cluster pool1
+| **maxNodeProvisionTime** | `25` minutes                                                                              |
+| **numOfReplicas**        | `3`                                                                                       |
+
+7. Click **Save Changes** and verify the add-on status shows **Ready**
+
+---
+
+## Step 3: Verify Cluster Autoscaler Deployment
+
+```bash
+kubectl get nodes
+kubectl get pods -n kube-system | grep cluster-autoscaler
+kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+```
+
+*Confirm that 3 Cluster Autoscaler pods are running and monitoring node pool workloads.*
+
+---
+
+## Step 4: Deploy Sample NGINX Application
+
+```bash
+cd OAIW25-OKE-CLASS/autoscaler_example
+nano nginx.yaml
+```
+
+**Sample YAML Key Configurations:**
+
+* Deployment: `nginx-deployment-auto`
+* Initial replicas: 2
+* Container image: NGINX from OCIR
+* Resource request: Memory 400 Mi
+
+```bash
+kubectl apply -f nginx.yaml
+kubectl get deployment nginx-deployment-auto
+kubectl get pods
+```
+
+---
+
+## Step 5: Scale NGINX Deployment to Trigger Autoscaler
+
+```bash
+kubectl scale deployment nginx-deployment-auto --replicas=75
+kubectl get deployment nginx-deployment-auto -w
+kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+```
+
+*Observe automatic scale-up of node pool to accommodate 75 pods.*
+
+---
+
+## Step 6: Verify Node Scaling
+
+1. Check node pool status in OCI Console
+2. Confirm node pool scales from 2 → 4 worker nodes
+3. Check pod placement:
+
+```bash
+kubectl get pods -o wide
+```
+
+*Pods should be distributed across all nodes.*
+
+---
+
+## Step 7: Scale Down
+
+```bash
+kubectl delete deployment nginx-deployment-auto
+kubectl get nodes -o wide
+```
+
+*The Cluster Autoscaler removes empty worker nodes, while nodes hosting `kube-system` pods remain.*
+
+---
+
+## Commands Summary
+
+```bash
+kubectl get nodes
+kubectl get pods -n kube-system | grep cluster-autoscaler
+kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+kubectl apply -f nginx.yaml
+kubectl get deployment nginx-deployment-auto
+kubectl scale deployment nginx-deployment-auto --replicas=75
+kubectl get deployment nginx-deployment-auto -w
+kubectl delete deployment nginx-deployment-auto
+```
+
+---
+
+## Conclusion
+
+* Enabled Cluster Autoscaler Add-on successfully
+* Observed **automatic scale-up** of node pools when workload increased
+* Verified **scale-down** of worker nodes when pods were removed
+* Learned how to configure parameters like `min/max nodes`, `numOfReplicas`, and `maxNodeProvisionTime`
+
